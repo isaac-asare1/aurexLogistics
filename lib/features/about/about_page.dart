@@ -11,8 +11,8 @@ class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
   // Assets (place images here)
-  static const String heroImage = 'assets/images/about_hero.jpg';
-  static const String teamImage = 'assets/images/about_team.jpg';
+  static const String heroImage = 'assets/images/image1.webp';
+  static const String teamImage = 'assets/images/image2.webp';
 
   @override
   Widget build(BuildContext context) {
@@ -512,8 +512,8 @@ class _SafeBgImageOrGradient extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            theme.colorScheme.primary.withOpacity(0.28),
-            theme.colorScheme.secondary.withOpacity(0.22),
+            _op(theme.colorScheme.primary, 0.28),
+            _op(theme.colorScheme.secondary, 0.22),
           ],
         ),
       ),
@@ -568,3 +568,5 @@ class _StatItem {
 
   const _StatItem({required this.label, required this.value});
 }
+
+Color _op(Color c, double opacity) => c.withAlpha((opacity * 255).round());

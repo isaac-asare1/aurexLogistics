@@ -1,4 +1,4 @@
-import 'package:aurex_secure_logistics/features/home_page.dart';
+import 'package:aurex_secure_logistics/features/home/home_page.dart';
 import 'package:aurex_secure_logistics/features/tracking/tracking_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

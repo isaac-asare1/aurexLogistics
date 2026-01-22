@@ -12,6 +12,7 @@ class ServicesPage extends StatelessWidget {
 
   // Assets (place images here)
   static const String heroImage = 'assets/images/services_hero.jpg';
+  //tatic const String mainBackgroundImage = 'images/background.jpg';
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +21,7 @@ class ServicesPage extends StatelessWidget {
         title: 'Secure Dispatch & Delivery',
         desc:
             'Careful handling for parcels and documents with clear accountability and delivery confirmation.',
-        assetPath: 'assets/images/service_delivery.jpg',
+        assetPath: 'assets/images/image1.webp',
         bullets: [
           'Same-day / scheduled delivery options',
           'Proof of delivery (POD)',
@@ -67,15 +68,24 @@ class ServicesPage extends StatelessWidget {
         children: [
           const AurexNavbar(tagline: 'Secure Logistics'),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const _ServicesHero(heroAssetPath: heroImage),
-                  _ServicesGrid(services: services),
-                  const _AssuranceSection(),
-                  const _ServicesCTA(),
-                  const AurexFooter(),
-                ],
+            child: Container(
+              width: double.infinity,
+              // decoration: BoxDecoration(
+              //   image: DecorationImage(
+              //     image: AssetImage(mainBackgroundImage),
+              //     fit: BoxFit.cover,
+              //   ),
+              // ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const _ServicesHero(heroAssetPath: heroImage),
+                    _ServicesGrid(services: services),
+                    const _AssuranceSection(),
+                    const _ServicesCTA(),
+                    const AurexFooter(),
+                  ],
+                ),
               ),
             ),
           ),

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../responsive/breakpoints.dart';
 import 'primary_button.dart';
 
+/// Helper to replace withOpacity (avoids deprecation warnings)
+Color _op(Color c, double o) => c.withAlpha((o * 255).round());
+
 class AurexNavbar extends StatelessWidget {
   /// If true, uses [logoAssetPath]. If false, shows "Aurex" text.
   final bool useLogoAsset;
@@ -21,17 +24,24 @@ class AurexNavbar extends StatelessWidget {
     this.tagline,
   });
 
+  bool _isSelected(String currentPath, String linkPath) {
+    if (linkPath == '/') return currentPath == '/';
+    return currentPath.startsWith(linkPath);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final maxW = Breakpoints.contentMaxWidth(context);
-
     final isDesktop = Breakpoints.isDesktop(context);
+
+    // ✅ Current route for “selected tab stays underlined”
+    final currentPath = GoRouterState.of(context).uri.path;
 
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
+        color: _op(Colors.white, 0.92),
         border: const Border(bottom: BorderSide(color: Color(0xFFE8ECF1))),
       ),
       child: SafeArea(
@@ -52,21 +62,29 @@ class AurexNavbar extends StatelessWidget {
 
                   // Desktop nav
                   if (isDesktop) ...[
-                    _NavLink(label: 'Home', onTap: () => context.go('/')),
+                    _NavLink(
+                      label: 'Home',
+                      selected: _isSelected(currentPath, '/'),
+                      onTap: () => context.go('/'),
+                    ),
                     _NavLink(
                       label: 'Services',
+                      selected: _isSelected(currentPath, '/services'),
                       onTap: () => context.go('/services'),
                     ),
-                    // Similar vibe to the reference site’s "Tracking"
-                    // We’ll create this page later if you want it:
                     _NavLink(
                       label: 'Tracking',
+                      selected: _isSelected(currentPath, '/tracking'),
                       onTap: () => context.go('/tracking'),
-                      disabled: false,
                     ),
-                    _NavLink(label: 'About', onTap: () => context.go('/about')),
+                    _NavLink(
+                      label: 'About',
+                      selected: _isSelected(currentPath, '/about'),
+                      onTap: () => context.go('/about'),
+                    ),
                     _NavLink(
                       label: 'Contact',
+                      selected: _isSelected(currentPath, '/contact'),
                       onTap: () => context.go('/contact'),
                     ),
                     const SizedBox(width: 12),
@@ -129,9 +147,11 @@ class AurexNavbar extends StatelessWidget {
                   },
                 ),
                 _MobileItem(
-                  label: 'Tracking (Soon)',
-                  onTap: null,
-                  disabled: true,
+                  label: 'Tracking',
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.go('/tracking');
+                  },
                 ),
                 _MobileItem(
                   label: 'About',
@@ -194,17 +214,13 @@ class _LogoBlock extends StatelessWidget {
       child: Row(
         children: [
           if (useLogoAsset) ...[
-            // Put your logo here:
-            // - SVG: assets/icons/logo.svg
-            // - PNG: assets/icons/logo.png
             _LogoAsset(path: logoAssetPath),
           ] else ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.07),
+                color: _op(theme.colorScheme.primary, 0.07),
                 borderRadius: BorderRadius.circular(14),
-                // border: const BorderSide(color: Color(0xFFE8ECF1)),
               ),
               child: Text(
                 'Aurex',
@@ -233,16 +249,15 @@ class _LogoAsset extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final isSvg = path.toLowerCase().endsWith('.svg');
+    // final isSvg = path.toLowerCase().endsWith('.svg');
 
     return Container(
       width: 50,
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.04),
+        color: _op(theme.colorScheme.primary, 0.04),
         borderRadius: BorderRadius.circular(14),
-        // border: const BorderSide(color: Color(0xFFE8ECF1)),
       ),
       // child: isSvg
       //     ? SvgPicture.asset(path, height: 26)
@@ -256,10 +271,14 @@ class _NavLink extends StatefulWidget {
   final VoidCallback? onTap;
   final bool disabled;
 
+  /// ✅ keeps underline visible even when not hovered
+  final bool selected;
+
   const _NavLink({
     required this.label,
     required this.onTap,
     this.disabled = false,
+    this.selected = false,
   });
 
   @override
@@ -272,12 +291,28 @@ class _NavLinkState extends State<_NavLink> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final baseColor = theme.colorScheme.primary;
 
-    final color = widget.disabled
-        ? theme.colorScheme.primary.withOpacity(0.35)
-        : (_hover
-              ? theme.colorScheme.primary
-              : theme.colorScheme.primary.withOpacity(0.85));
+    final active = (!widget.disabled) && (widget.selected);
+
+    final textColor = widget.disabled
+        ? _op(baseColor, 0.35)
+        : (active ? baseColor : _op(baseColor, 0.85));
+
+    // ✅ measure text width so underline is “quite longer”
+    final style = theme.textTheme.bodyMedium!.copyWith(
+      fontWeight: FontWeight.w700,
+      color: textColor,
+      letterSpacing: (!widget.disabled && _hover) ? 0.6 : 0.0,
+    );
+
+    final tp = TextPainter(
+      text: TextSpan(text: widget.label, style: style),
+      maxLines: 1,
+      textDirection: Directionality.of(context),
+    )..layout();
+
+    final underlineWidth = active ? (tp.width + 6) : 0.0;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -285,21 +320,38 @@ class _NavLinkState extends State<_NavLink> {
       child: InkWell(
         onTap: widget.disabled ? null : widget.onTap,
         borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: _hover && !widget.disabled
-                ? theme.colorScheme.primary.withOpacity(0.06)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            widget.label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
+        splashColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: AnimatedScale(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            scale: (!widget.disabled && _hover) ? 1.04 : 1.0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  style: style,
+                  child: Text(widget.label),
+                ),
+                const SizedBox(height: 4),
+
+                // ✅ underline: longer + stays for selected tab
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  height: 2,
+                  width: underlineWidth,
+                  decoration: BoxDecoration(
+                    color: widget.disabled ? Colors.transparent : baseColor,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -322,6 +374,7 @@ class _MobileItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = theme.colorScheme.primary;
 
     return ListTile(
       onTap: disabled ? null : onTap,
@@ -329,16 +382,12 @@ class _MobileItem extends StatelessWidget {
         label,
         style: theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.w800,
-          color: disabled
-              ? theme.colorScheme.primary.withOpacity(0.35)
-              : theme.colorScheme.primary,
+          color: disabled ? _op(c, 0.35) : c,
         ),
       ),
       trailing: Icon(
         Icons.chevron_right_rounded,
-        color: disabled
-            ? theme.colorScheme.primary.withOpacity(0.25)
-            : theme.colorScheme.primary.withOpacity(0.65),
+        color: disabled ? _op(c, 0.25) : _op(c, 0.65),
       ),
     );
   }

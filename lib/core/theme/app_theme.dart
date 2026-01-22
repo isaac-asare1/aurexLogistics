@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Brand tokens (edit these later when you finalize Aurex colors)
   static const Color primary = Color(0xFF0B1B2B); // deep navy
+  static const Color lazyBlack = Color.fromARGB(13, 0, 0, 0); // deep navy
   static const Color accent = Color(0xFFFFC247); // gold/amber
   static const Color bg = Color(0xFFF7F8FA); // light background
   static const Color surface = Colors.white;

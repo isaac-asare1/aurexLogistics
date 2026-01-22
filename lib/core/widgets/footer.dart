@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../responsive/breakpoints.dart';
 
 class AurexFooter extends StatelessWidget {
@@ -26,6 +27,7 @@ class AurexFooter extends StatelessWidget {
                 children: [
                   _FooterBlock(
                     title: 'Aurex Secure Logistics',
+                    width: 420,
                     children: [
                       Text(
                         'Secure dispatch, corporate logistics, warehousing, and high-value deliveries handled with strict standards and accountability.',
@@ -34,13 +36,13 @@ class AurexFooter extends StatelessWidget {
                         ),
                       ),
                     ],
-                    width: 420,
                   ),
                   _FooterBlock(
                     title: 'Quick Links',
                     children: const [
                       _FooterLink(label: 'Home', route: '/'),
                       _FooterLink(label: 'Services', route: '/services'),
+                      _FooterLink(label: 'Tracking', route: '/tracking'),
                       _FooterLink(label: 'About', route: '/about'),
                       _FooterLink(label: 'Contact', route: '/contact'),
                     ],
@@ -146,7 +148,7 @@ class _FooterLink extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => Navigator.of(context).pushNamed(route),
+      onTap: () => context.go(route),
       child: Text(
         label,
         style: theme.textTheme.bodyMedium?.copyWith(

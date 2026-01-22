@@ -24,7 +24,7 @@ class _ContactPageState extends State<ContactPage> {
   static const String locationText = 'Accra, Ghana';
 
   // Assets
-  static const String heroImage = 'assets/images/contact_hero.jpg';
+  static const String heroImage = 'assets/images/image4.webp';
 
   // Form controllers
   final _formKey = GlobalKey<FormState>();
