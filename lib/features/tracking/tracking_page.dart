@@ -21,7 +21,7 @@ class TrackingPage extends StatefulWidget {
 class _TrackingPageState extends State<TrackingPage> {
   // Assets (place images here)
   static const String heroImage = 'assets/images/image1.webp';
-  static const String mapImage = 'assets/images/image3.webp';
+  static const String mapImage = 'images/gps_route.jpg';
 
   final _trackingCtrl = TextEditingController();
 

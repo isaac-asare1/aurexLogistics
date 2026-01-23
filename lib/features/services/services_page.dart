@@ -11,7 +11,7 @@ class ServicesPage extends StatelessWidget {
   const ServicesPage({super.key});
 
   // Assets (place images here)
-  static const String heroImage = 'assets/images/services_hero.jpg';
+  static const String heroImage = 'assets/images/reliable.jpg';
   //tatic const String mainBackgroundImage = 'images/background.jpg';
 
   @override
@@ -21,7 +21,7 @@ class ServicesPage extends StatelessWidget {
         title: 'Secure Dispatch & Delivery',
         desc:
             'Careful handling for parcels and documents with clear accountability and delivery confirmation.',
-        assetPath: 'assets/images/image1.webp',
+        assetPath: 'assets/images/parcel.jpg',
         bullets: [
           'Same-day / scheduled delivery options',
           'Proof of delivery (POD)',
@@ -32,7 +32,7 @@ class ServicesPage extends StatelessWidget {
         title: 'Corporate Logistics',
         desc:
             'Reliable support for companies: bulk movement, scheduled pickups, and consistent service standards.',
-        assetPath: 'assets/images/service_corporate.jpg',
+        assetPath: 'assets/images/delivery_van.jpg',
         bullets: [
           'Business-friendly operations',
           'Bulk delivery coordination',
@@ -43,7 +43,7 @@ class ServicesPage extends StatelessWidget {
         title: 'Warehousing & Inventory',
         desc:
             'Safe storage and organized handling for items that need structured processing and tracking.',
-        assetPath: 'assets/images/service_warehouse.jpg',
+        assetPath: 'assets/images/tracking.png',
         bullets: [
           'Organized storage handling',
           'Inventory check-in/check-out process',
@@ -54,7 +54,7 @@ class ServicesPage extends StatelessWidget {
         title: 'High-value & Confidential Transport',
         desc:
             'Extra care for sensitive and valuable items with strict handling expectations and controlled movement.',
-        assetPath: 'assets/images/service_high_value.jpg',
+        assetPath: 'images/confidential.jpg',
         bullets: [
           'Strict handling protocols',
           'Discreet movement options',
@@ -68,24 +68,15 @@ class ServicesPage extends StatelessWidget {
         children: [
           const AurexNavbar(tagline: 'Secure Logistics'),
           Expanded(
-            child: Container(
-              width: double.infinity,
-              // decoration: BoxDecoration(
-              //   image: DecorationImage(
-              //     image: AssetImage(mainBackgroundImage),
-              //     fit: BoxFit.cover,
-              //   ),
-              // ),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const _ServicesHero(heroAssetPath: heroImage),
-                    _ServicesGrid(services: services),
-                    const _AssuranceSection(),
-                    const _ServicesCTA(),
-                    const AurexFooter(),
-                  ],
-                ),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const _ServicesHero(heroAssetPath: heroImage),
+                  _ServicesGrid(services: services),
+                  const _AssuranceSection(),
+                  const _ServicesCTA(),
+                  const AurexFooter(),
+                ],
               ),
             ),
           ),

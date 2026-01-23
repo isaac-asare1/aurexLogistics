@@ -144,14 +144,6 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     super.dispose();
   }
 
-  // void _goTo(int i) {
-  //   _controller.animateToPage(
-  //     i,
-  //     duration: const Duration(milliseconds: 650),
-  //     curve: Curves.easeInOutCubic,
-  //   );
-  // }
-
   void _goTo(int i) {
     final lastIndex = widget.slides.length - 1;
 
@@ -662,7 +654,7 @@ class _StepCard extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.08),
+                color: _op(theme.colorScheme.primary, 0.08),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE8ECF1)),
               ),
