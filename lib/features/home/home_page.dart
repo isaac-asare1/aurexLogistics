@@ -15,8 +15,8 @@ class HomePage extends StatelessWidget {
   static const String heroImage = 'assets/images/image1.webp';
   static const String service1 = 'images/delivery.jpg';
   static const String service2 = 'images/forklift.jpg';
-  static const String service3 = 'images/warehouse2.jpg';
-  static const String mainBackgroundImage = 'images/background.jpg';
+  static const String service3 = 'images/warehouse.jpg';
+  static const String mainBackgroundImage = 'images/airplane.jpg';
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +199,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     final isMobile = width < 650;
 
     final arrowSize = isDesktop ? 64.0 : 54.0;
-    final cardHeight = isDesktop ? 430.0 : (isMobile ? 520.0 : 480.0);
+    final cardHeight = isDesktop ? 430.0 : (isMobile ? 540.0 : 480.0);
 
     final card = ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -246,9 +246,15 @@ class _HeroCarouselState extends State<_HeroCarousel> {
 
                         SelectableText(
                           s.title,
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: Colors.white,
-                          ),
+                          style: isMobile
+                              ? TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                )
+                              : theme.textTheme.headlineLarge?.copyWith(
+                                  color: Colors.white,
+                                ),
                         ),
                         const SizedBox(height: 12),
 

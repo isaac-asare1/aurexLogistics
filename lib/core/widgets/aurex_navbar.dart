@@ -115,77 +115,166 @@ class AurexNavbar extends StatelessWidget {
     );
   }
 
+  // void _openMobileMenu(BuildContext context) {
+  //   final theme = Theme.of(context);
+
+  //   showModalBottomSheet(
+  //     context: context,
+  //     showDragHandle: true,
+  //     backgroundColor: Colors.white,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+  //     ),
+  //     builder: (_) {
+  //       return SafeArea(
+  //         child: Padding(
+  //           padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               _MobileItem(
+  //                 label: 'Home',
+  //                 onTap: () {
+  //                   Navigator.pop(context);
+  //                   context.go('/');
+  //                 },
+  //               ),
+  //               _MobileItem(
+  //                 label: 'Services',
+  //                 onTap: () {
+  //                   Navigator.pop(context);
+  //                   context.go('/services');
+  //                 },
+  //               ),
+  //               _MobileItem(
+  //                 label: 'Tracking',
+  //                 onTap: () {
+  //                   Navigator.pop(context);
+  //                   context.go('/tracking');
+  //                 },
+  //               ),
+  //               _MobileItem(
+  //                 label: 'About',
+  //                 onTap: () {
+  //                   Navigator.pop(context);
+  //                   context.go('/about');
+  //                 },
+  //               ),
+  //               _MobileItem(
+  //                 label: 'Contact',
+  //                 onTap: () {
+  //                   Navigator.pop(context);
+  //                   context.go('/contact');
+  //                 },
+  //               ),
+  //               const SizedBox(height: 14),
+  //               SizedBox(
+  //                 width: double.infinity,
+  //                 child: PrimaryButton(
+  //                   label: 'Get a Quote',
+  //                   icon: Icons.arrow_forward_rounded,
+  //                   onPressed: () {
+  //                     Navigator.pop(context);
+  //                     context.go('/contact');
+  //                   },
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 10),
+  //               Text(
+  //                 'Aurex Secure Logistics',
+  //                 style: theme.textTheme.bodyMedium,
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
   void _openMobileMenu(BuildContext context) {
     final theme = Theme.of(context);
 
     showModalBottomSheet(
       context: context,
-      showDragHandle: true,
+      isScrollControlled: true, // ✅ allows taller sheets
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (_) {
+      builder: (ctx) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _MobileItem(
-                  label: 'Home',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/');
-                  },
-                ),
-                _MobileItem(
-                  label: 'Services',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/services');
-                  },
-                ),
-                _MobileItem(
-                  label: 'Tracking',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/tracking');
-                  },
-                ),
-                _MobileItem(
-                  label: 'About',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/about');
-                  },
-                ),
-                _MobileItem(
-                  label: 'Contact',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.go('/contact');
-                  },
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: PrimaryButton(
-                    label: 'Get a Quote',
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      context.go('/contact');
-                    },
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.55, // ✅ starts at 55% height
+            minChildSize: 0.35,
+            maxChildSize: 0.90, // ✅ can grow to 90%
+            builder: (_, scrollController) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                child: SingleChildScrollView(
+                  controller: scrollController, // ✅ sheet scroll
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MobileItem(
+                        label: 'Home',
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go('/');
+                        },
+                      ),
+                      _MobileItem(
+                        label: 'Services',
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go('/services');
+                        },
+                      ),
+                      _MobileItem(
+                        label: 'Tracking',
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go('/tracking');
+                        },
+                      ),
+                      _MobileItem(
+                        label: 'About',
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go('/about');
+                        },
+                      ),
+                      _MobileItem(
+                        label: 'Contact',
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.go('/contact');
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: PrimaryButton(
+                          label: 'Get a Quote',
+                          icon: Icons.arrow_forward_rounded,
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.go('/contact');
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Aurex Secure Logistics',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  'Aurex Secure Logistics',
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
-            ),
+              );
+            },
           ),
         );
       },

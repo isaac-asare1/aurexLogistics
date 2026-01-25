@@ -52,7 +52,9 @@ class AurexFooter extends StatelessWidget {
                     children: [
                       _FooterText('Phone: +233 XX XXX XXXX'),
                       _FooterText('Email: hello@aurexsecurelogistics.com'),
-                      _FooterText('Location: Accra, Ghana'),
+                      _FooterText(
+                        'Location: United States (Nationwide Operations)',
+                      ),
                       const SizedBox(height: 10),
                       Text(
                         'Working Hours: Mon–Sat, 8:00 AM – 6:00 PM',

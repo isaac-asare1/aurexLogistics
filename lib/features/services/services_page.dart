@@ -187,11 +187,6 @@ class _ServicesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final pad = Breakpoints.sectionPadding(context);
     final maxW = Breakpoints.contentMaxWidth(context);
-    final isDesktop = Breakpoints.isDesktop(context);
-    final isTablet = Breakpoints.isTablet(context);
-
-    final crossAxisCount = isDesktop ? 2 : (isTablet ? 2 : 1);
-    final ratio = isDesktop ? 1.9 : 1.6;
 
     return Padding(
       padding: pad.copyWith(top: 10),
@@ -207,16 +202,33 @@ class _ServicesGrid extends StatelessWidget {
                     'Aurex Secure Logistics provides secure movement, structured operations, and clear communication from pickup to delivery.',
               ),
               const SizedBox(height: 18),
-              GridView.count(
-                crossAxisCount: crossAxisCount,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: ratio,
-                children: services
-                    .map((s) => _ServiceCard(service: s))
-                    .toList(),
+
+              LayoutBuilder(
+                builder: (context, c) {
+                  final spacing = 14.0;
+
+                  // ✅ Landscape phones become "mobile-like"
+                  final mq = MediaQuery.of(context);
+                  final isMobileLike = mq.size.shortestSide < 600;
+
+                  // ✅ 2 columns for wider screens, but NOT GridView (Wrap allows natural height)
+                  final cols = isMobileLike ? 1 : 2;
+                  final itemW = cols == 1
+                      ? c.maxWidth
+                      : (c.maxWidth - spacing) / 2;
+
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      for (final s in services)
+                        SizedBox(
+                          width: itemW,
+                          child: _ServiceCard(service: s),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -234,68 +246,88 @@ class _ServiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final isMobile = MediaQuery.of(context).size.shortestSide < 600;
+
+    final image = ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: _SafeBgImageOrGradient(assetPath: service.assetPath),
+    );
+
+    // ✅ On mobile: keep image width = 220 but prevent overflow by centering it
+    final mobileImage = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 220),
+        child: AspectRatio(aspectRatio: 1, child: image),
+      ),
+    );
+
+    // ✅ On desktop/tablet: fixed width = 220 in row layout
+    final desktopImage = SizedBox(
+      width: 220,
+      child: AspectRatio(aspectRatio: 1, child: image),
+    );
+
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // ✅ don’t force height
+      children: [
+        Text(service.title, style: theme.textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Text(service.desc, style: theme.textTheme.bodyMedium),
+        const SizedBox(height: 12),
+        ...service.bullets.map(
+          (b) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    b,
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        PrimaryButton(
+          label: 'Request this service',
+          icon: Icons.arrow_forward_rounded,
+          onPressed: () => context.go('/contact'),
+          height: 40,
+        ),
+      ],
+    );
+
     return Card(
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Image block
-            AspectRatio(
-              aspectRatio: 1.0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: _SafeBgImageOrGradient(assetPath: service.assetPath),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Text block
-            Expanded(
-              child: Column(
+        child: isMobile
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [mobileImage, const SizedBox(height: 14), content],
+              )
+            : Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(service.title, style: theme.textTheme.titleLarge),
-                  const SizedBox(height: 8),
-                  Text(service.desc, style: theme.textTheme.bodyMedium),
-                  const SizedBox(height: 12),
-                  ...service.bullets.map(
-                    (b) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.check_circle_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              b,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: PrimaryButton(
-                      label: 'Request this service',
-                      icon: Icons.arrow_forward_rounded,
-                      onPressed: () => context.go('/contact'),
-                      height: 46,
-                    ),
-                  ),
+                  desktopImage,
+                  const SizedBox(width: 16),
+                  Expanded(child: content),
                 ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -353,15 +385,33 @@ class _AssuranceSection extends StatelessWidget {
                       'We don’t just move items — we follow standards that reduce risk and increase trust.',
                 ),
                 const SizedBox(height: 18),
-                GridView.count(
-                  crossAxisCount: isDesktop ? 3 : 1,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: isDesktop ? 2.4 : 2.2,
-                  children: items.map((e) => _AssuranceCard(item: e)).toList(),
-                ),
+
+                // ✅ Mobile: Column (no forced height)
+                if (!isDesktop)
+                  Column(
+                    children: items
+                        .map(
+                          (e) => Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: _AssuranceCard(item: e),
+                          ),
+                        )
+                        .toList(),
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: items.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 2.4,
+                        ),
+                    itemBuilder: (_, i) => _AssuranceCard(item: items[i]),
+                  ),
               ],
             ),
           ),

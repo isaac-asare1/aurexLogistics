@@ -7,12 +7,17 @@ import '../../core/widgets/footer.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/section_title.dart';
 
+/// Helper to replace withOpacity (avoids deprecation warnings)
+Color _op(Color c, double o) => c.withAlpha((o * 255).round());
+
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
-  // Assets (place images here)
+  // ✅ Assets (place images here): assets/images/...
   static const String heroImage = 'assets/images/image1.webp';
-  static const String teamImage = 'assets/images/image2.webp';
+
+  // ⚠️ Make sure this exists under assets/images/ and is declared in pubspec.yaml
+  static const String teamImage = 'assets/images/logistic_team.jpg';
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +75,9 @@ class _AboutHero extends StatelessWidget {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          theme.colorScheme.primary.withOpacity(0.90),
-                          theme.colorScheme.primary.withOpacity(0.55),
-                          theme.colorScheme.primary.withOpacity(0.20),
+                          _op(theme.colorScheme.primary, 0.90),
+                          _op(theme.colorScheme.primary, 0.55),
+                          _op(theme.colorScheme.primary, 0.20),
                         ],
                       ),
                     ),
@@ -99,7 +104,7 @@ class _AboutHero extends StatelessWidget {
                         Text(
                           'Aurex Secure Logistics exists to move items with clear standards, careful handling, and professional communication — from pickup to delivery.',
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withOpacity(0.92),
+                            color: _op(Colors.white, 0.92),
                           ),
                         ),
                         const SizedBox(height: 18),
@@ -140,34 +145,45 @@ class _MissionVision extends StatelessWidget {
   Widget build(BuildContext context) {
     final pad = Breakpoints.sectionPadding(context);
     final maxW = Breakpoints.contentMaxWidth(context);
-    final isDesktop = Breakpoints.isDesktop(context);
 
     return Padding(
       padding: pad.copyWith(top: 10),
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxW),
-          child: GridView.count(
-            crossAxisCount: isDesktop ? 2 : 1,
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 14,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: isDesktop ? 2.6 : 2.2,
-            children: const [
-              _InfoCard(
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final isWide = c.maxWidth >= 900;
+
+              final mission = const _InfoCard(
                 title: 'Our Mission',
                 desc:
                     'To deliver secure and reliable logistics services through strict handling standards, accountability, and consistent communication.',
                 icon: Icons.flag_outlined,
-              ),
-              _InfoCard(
+              );
+
+              final vision = const _InfoCard(
                 title: 'Our Vision',
                 desc:
                     'To become a trusted leader in secure logistics, known for safety, professionalism, and dependable delivery outcomes.',
                 icon: Icons.visibility_outlined,
-              ),
-            ],
+              );
+
+              if (!isWide) {
+                return Column(
+                  children: [mission, const SizedBox(height: 14), vision],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: mission),
+                  const SizedBox(width: 14),
+                  Expanded(child: vision),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -183,7 +199,6 @@ class _Values extends StatelessWidget {
     final theme = Theme.of(context);
     final pad = Breakpoints.sectionPadding(context);
     final maxW = Breakpoints.contentMaxWidth(context);
-    final isDesktop = Breakpoints.isDesktop(context);
 
     const values = [
       _ValueItem(
@@ -222,20 +237,35 @@ class _Values extends StatelessWidget {
                     'The principles that shape how we move items and serve clients.',
               ),
               const SizedBox(height: 18),
-              GridView.count(
-                crossAxisCount: isDesktop ? 4 : 1,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: isDesktop ? 1.15 : 2.2,
-                children: values.map((v) => _ValueCard(item: v)).toList(),
+
+              // ✅ Responsive layout with no fixed heights
+              LayoutBuilder(
+                builder: (context, c) {
+                  final w = c.maxWidth;
+                  const spacing = 14.0;
+
+                  final cols = w >= 1100 ? 4 : (w >= 760 ? 2 : 1);
+                  final itemW = (w - (spacing * (cols - 1))) / cols;
+
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      for (final v in values)
+                        SizedBox(
+                          width: itemW,
+                          child: _ValueCard(item: v),
+                        ),
+                    ],
+                  );
+                },
               ),
+
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.06),
+                  color: _op(theme.colorScheme.primary, 0.06),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFFE8ECF1)),
                 ),
@@ -268,7 +298,6 @@ class _StatsAndTrust extends StatelessWidget {
   Widget build(BuildContext context) {
     final pad = Breakpoints.sectionPadding(context);
     final maxW = Breakpoints.contentMaxWidth(context);
-    final isDesktop = Breakpoints.isDesktop(context);
 
     const stats = [
       _StatItem(label: 'Operational Focus', value: 'Security'),
@@ -281,19 +310,16 @@ class _StatsAndTrust extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxW),
-          child: GridView.count(
-            crossAxisCount: isDesktop ? 2 : 1,
-            mainAxisSpacing: 14,
-            crossAxisSpacing: 14,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: isDesktop ? 1.65 : 1.25,
-            children: [
-              Card(
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final isWide = c.maxWidth >= 900;
+
+              final leftCard = Card(
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const SectionTitle(
                         title: 'Trust & operations',
@@ -314,14 +340,31 @@ class _StatsAndTrust extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-              Card(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
+              );
+
+              final rightImage = Card(
+                clipBehavior: Clip.antiAlias,
+                child: AspectRatio(
+                  aspectRatio: isWide ? 16 / 10 : 16 / 9,
                   child: _SafeBgImageOrGradient(assetPath: teamAssetPath),
                 ),
-              ),
-            ],
+              );
+
+              if (!isWide) {
+                return Column(
+                  children: [leftCard, const SizedBox(height: 14), rightImage],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: leftCard),
+                  const SizedBox(width: 14),
+                  Expanded(child: rightImage),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -346,33 +389,54 @@ class _AboutCTA extends StatelessWidget {
           child: Card(
             child: Padding(
               padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Want to work with Aurex?',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tell us what you’re moving and your destination — we’ll respond with pricing and timelines.',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final isWide = c.maxWidth >= 700;
+
+                  final title = Text(
+                    'Want to work with Aurex?',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  PrimaryButton(
+                  );
+
+                  final desc = Text(
+                    'Tell us what you’re moving and your destination — we’ll respond with pricing and timelines.',
+                    style: theme.textTheme.bodyMedium,
+                  );
+
+                  final button = PrimaryButton(
                     label: 'Contact Us',
                     icon: Icons.arrow_forward_rounded,
                     onPressed: () => context.go('/contact'),
-                  ),
-                ],
+                  );
+
+                  if (isWide) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [title, const SizedBox(height: 8), desc],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        button,
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      title,
+                      const SizedBox(height: 8),
+                      desc,
+                      const SizedBox(height: 14),
+                      SizedBox(width: double.infinity, child: button),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -401,12 +465,13 @@ class _InfoCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.08),
+                color: _op(theme.colorScheme.primary, 0.08),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE8ECF1)),
               ),
@@ -415,7 +480,6 @@ class _InfoCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: theme.textTheme.titleLarge),
@@ -444,12 +508,13 @@ class _ValueCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.08),
+                color: _op(theme.colorScheme.primary, 0.08),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE8ECF1)),
               ),
@@ -477,7 +542,7 @@ class _StatPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.06),
+        color: _op(theme.colorScheme.primary, 0.06),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: const Color(0xFFE8ECF1)),
       ),
@@ -535,14 +600,14 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.16),
+        color: _op(Colors.white, 0.16),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withOpacity(0.20)),
+        border: Border.all(color: _op(Colors.white, 0.20)),
       ),
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Colors.white.withOpacity(0.92),
+          color: _op(Colors.white, 0.92),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -568,5 +633,3 @@ class _StatItem {
 
   const _StatItem({required this.label, required this.value});
 }
-
-Color _op(Color c, double opacity) => c.withAlpha((opacity * 255).round());
