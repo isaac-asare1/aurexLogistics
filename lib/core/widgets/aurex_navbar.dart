@@ -289,8 +289,8 @@ class _NavLink extends StatefulWidget {
   const _NavLink({
     required this.label,
     required this.onTap,
-    this.disabled = false,
     this.selected = false,
+    this.disabled = false,
   });
 
   @override

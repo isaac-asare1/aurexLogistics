@@ -5,6 +5,7 @@ class SectionTitle extends StatelessWidget {
   final String? subtitle;
   final Widget? trailing;
   final TextAlign align;
+  final TextStyle? titleStyle;
   final bool whiteText;
 
   const SectionTitle({
@@ -14,6 +15,7 @@ class SectionTitle extends StatelessWidget {
     this.trailing,
     this.align = TextAlign.left,
     this.whiteText = false,
+    this.titleStyle,
   });
 
   @override
@@ -32,7 +34,7 @@ class SectionTitle extends StatelessWidget {
               Text(
                 title,
                 textAlign: align,
-                style: theme.textTheme.headlineMedium,
+                style: titleStyle ?? theme.textTheme.headlineMedium,
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 10),
