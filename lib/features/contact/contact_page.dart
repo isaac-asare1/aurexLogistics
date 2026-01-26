@@ -19,14 +19,20 @@ class ContactPage extends StatefulWidget {
 }
 
 class _ContactPageState extends State<ContactPage> {
-  // ====== UPDATE THESE ======
-  static const String whatsAppNumber = '+23359155337'; // no + sign
-  static const String phoneNumber = '+233 XX XXX XXXX';
-  static const String emailAddress = 'hello@aurexsecurelogistics.com';
-  static const String locationText = 'Accra, Ghana';
+  // ====== UPDATE THESE (UK) ======
 
-  // Assets
-  static const String heroImage = 'images/support_agent.jpg';
+  /// IMPORTANT: wa.me requires digits only (no +, no spaces)
+  /// Example UK WhatsApp: 447911123456
+  static const String whatsAppNumber = '447911123456';
+
+  /// Display format (can include spaces)
+  static const String phoneNumber = '+44 7911 123456';
+
+  static const String emailAddress = 'info@aurexfreight.org';
+  static const String locationText = '8-14 Exchange St, Manchester, M2 7HA';
+
+  // Assets (put this image in: assets/images/support_agent.jpg)
+  static const String heroImage = 'assets/images/support_agent.jpg';
 
   // Form controllers
   final _formKey = GlobalKey<FormState>();
@@ -116,13 +122,15 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> _openWhatsApp({String? message}) async {
     final text = Uri.encodeComponent(message ?? 'Hello Aurex, I need a quote.');
-    final uri = Uri.parse('https://wa.me/$whatsAppNumber?text=$text');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final digitsOnly = whatsAppNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final uri = Uri.parse('https://wa.me/$digitsOnly?text=$text');
+    await launchUrl(uri, mode: LaunchMode.platformDefault);
   }
 
   Future<void> _callPhone() async {
-    final uri = Uri.parse('tel:$phoneNumber');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final dial = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+    final uri = Uri.parse('tel:$dial');
+    await launchUrl(uri, mode: LaunchMode.platformDefault);
   }
 
   Future<void> _sendEmail() async {
@@ -131,7 +139,7 @@ class _ContactPageState extends State<ContactPage> {
     );
     final body = Uri.encodeComponent(_buildQuoteMessage());
     final uri = Uri.parse('mailto:$emailAddress?subject=$subject&body=$body');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    await launchUrl(uri, mode: LaunchMode.platformDefault);
   }
 }
 
@@ -261,7 +269,7 @@ class _ContactBody extends StatelessWidget {
               ),
               const SizedBox(height: 18),
 
-              // ✅ NO GridView (no forced height) => fixes overflow
+              // ✅ No GridView (prevents overflow). Responsive via LayoutBuilder.
               LayoutBuilder(
                 builder: (context, c) {
                   final isWide = c.maxWidth >= 900;
@@ -327,7 +335,7 @@ class _ContactBody extends StatelessWidget {
     );
   }
 
-  static String? _required(String? v) {
+  static String? requiredField(String? v) {
     if (v == null || v.trim().isEmpty) return 'This field is required';
     return null;
   }
@@ -386,14 +394,14 @@ class _QuoteFormCard extends StatelessWidget {
                 left: _Field(
                   controller: name,
                   label: 'Full Name',
-                  hint: 'e.g. John Mensah',
-                  validator: _ContactBody._required,
+                  hint: 'e.g. John Smith',
+                  validator: _ContactBody.requiredField,
                 ),
                 right: _Field(
                   controller: phone,
                   label: 'Phone Number',
-                  hint: 'e.g. +233...',
-                  validator: _ContactBody._required,
+                  hint: 'e.g. +44...',
+                  validator: _ContactBody.requiredField,
                 ),
               ),
               const SizedBox(height: 12),
@@ -410,7 +418,7 @@ class _QuoteFormCard extends StatelessWidget {
                 controller: pickup,
                 label: 'Pickup Location',
                 hint: 'Where should we pick up from?',
-                validator: _ContactBody._required,
+                validator: _ContactBody.requiredField,
               ),
               const SizedBox(height: 12),
 
@@ -418,7 +426,7 @@ class _QuoteFormCard extends StatelessWidget {
                 controller: dropoff,
                 label: 'Drop-off Location',
                 hint: 'Where should we deliver to?',
-                validator: _ContactBody._required,
+                validator: _ContactBody.requiredField,
               ),
               const SizedBox(height: 12),
 
@@ -426,7 +434,7 @@ class _QuoteFormCard extends StatelessWidget {
                 controller: items,
                 label: 'What are you moving?',
                 hint: 'Documents, parcel, boxes, etc.',
-                validator: _ContactBody._required,
+                validator: _ContactBody.requiredField,
               ),
               const SizedBox(height: 12),
 

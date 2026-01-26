@@ -205,28 +205,59 @@ class _ServicesGrid extends StatelessWidget {
 
               LayoutBuilder(
                 builder: (context, c) {
-                  final spacing = 14.0;
-
-                  // ✅ Landscape phones become "mobile-like"
+                  const spacing = 14.0;
                   final mq = MediaQuery.of(context);
-                  final isMobileLike = mq.size.shortestSide < 600;
 
-                  // ✅ 2 columns for wider screens, but NOT GridView (Wrap allows natural height)
-                  final cols = isMobileLike ? 1 : 2;
-                  final itemW = cols == 1
-                      ? c.maxWidth
-                      : (c.maxWidth - spacing) / 2;
+                  // ✅ Landscape phones still treated as phone-like
+                  final isPhoneLike = mq.size.shortestSide < 600;
 
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: [
-                      for (final s in services)
-                        SizedBox(
-                          width: itemW,
-                          child: _ServiceCard(service: s),
-                        ),
-                    ],
+                  // ✅ Desktop breakpoint (tweak if you want)
+                  final isDesktopLike = c.maxWidth >= 1100;
+
+                  if (isPhoneLike) {
+                    // 1 column, natural height (never overflow)
+                    return Column(
+                      children: services
+                          .map(
+                            (s) => Padding(
+                              padding: const EdgeInsets.only(bottom: spacing),
+                              child: _ServiceCard(service: s),
+                            ),
+                          )
+                          .toList(),
+                    );
+                  }
+
+                  if (!isDesktopLike) {
+                    // Tablet: 2 columns, natural height (no GridView)
+                    final itemW = (c.maxWidth - spacing) / 2;
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        for (final s in services)
+                          SizedBox(
+                            width: itemW,
+                            child: _ServiceCard(service: s),
+                          ),
+                      ],
+                    );
+                  }
+
+                  // Desktop: uniform grid (keeps rows aligned)
+                  final cols = c.maxWidth >= 1450 ? 3 : 2;
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: services.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: cols,
+                      mainAxisSpacing: spacing,
+                      crossAxisSpacing: spacing,
+                      mainAxisExtent: 320,
+                    ),
+                    itemBuilder: (_, i) => _ServiceCard(service: services[i]),
                   );
                 },
               ),

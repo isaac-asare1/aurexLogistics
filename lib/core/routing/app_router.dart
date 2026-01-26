@@ -1,3 +1,4 @@
+import 'package:aurex_secure_logistics/features/admin/admin_tracking_page.dart';
 import 'package:aurex_secure_logistics/features/home/home_page.dart';
 import 'package:aurex_secure_logistics/features/tracking/tracking_page.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,11 @@ class AppRouter {
         path: '/contact',
         name: 'contact',
         builder: (context, state) => const ContactPage(),
+      ),
+      GoRoute(
+        path: '/admin',
+        name: 'admin',
+        builder: (context, state) => const AdminTrackingPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

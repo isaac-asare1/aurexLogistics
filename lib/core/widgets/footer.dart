@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../responsive/breakpoints.dart';
 
+Color _op(Color c, double o) => c.withAlpha((o * 255).round());
+
 class AurexFooter extends StatelessWidget {
   const AurexFooter({super.key});
 
@@ -32,34 +34,36 @@ class AurexFooter extends StatelessWidget {
                       Text(
                         'Secure dispatch, corporate logistics, warehousing, and high-value deliveries handled with strict standards and accountability.',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.85),
+                          color: _op(Colors.white, 0.85),
                         ),
                       ),
                     ],
                   ),
-                  _FooterBlock(
+                  const _FooterBlock(
                     title: 'Quick Links',
-                    children: const [
+                    children: [
                       _FooterLink(label: 'Home', route: '/'),
                       _FooterLink(label: 'Services', route: '/services'),
                       _FooterLink(label: 'Tracking', route: '/tracking'),
                       _FooterLink(label: 'About', route: '/about'),
                       _FooterLink(label: 'Contact', route: '/contact'),
+                      _FooterLink(label: 'Admin', route: '/admin'),
                     ],
                   ),
                   _FooterBlock(
                     title: 'Contact',
                     children: [
-                      _FooterText('Phone: +233 XX XXX XXXX'),
-                      _FooterText('Email: hello@aurexsecurelogistics.com'),
-                      _FooterText(
-                        'Location: United States (Nationwide Operations)',
+                      const _FooterText('Phone: +44 20 1234 5678'),
+                      const _FooterText('WhatsApp: +44 7700 900123'),
+                      const _FooterText('Email: info@aurexfreight.org'),
+                      const _FooterText(
+                        'Location: 8-14 Exchange St, Manchester, M2 7HA',
                       ),
                       const SizedBox(height: 10),
                       Text(
                         'Working Hours: Mon–Sat, 8:00 AM – 6:00 PM',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.85),
+                          color: _op(Colors.white, 0.85),
                         ),
                       ),
                     ],
@@ -67,7 +71,7 @@ class AurexFooter extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 28),
-              Divider(color: Colors.white.withOpacity(0.18)),
+              Divider(color: _op(Colors.white, 0.18)),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -75,7 +79,7 @@ class AurexFooter extends StatelessWidget {
                     child: Text(
                       '© ${DateTime.now().year} Aurex Secure Logistics. All rights reserved.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withOpacity(0.75),
+                        color: _op(Colors.white, 0.75),
                       ),
                     ),
                   ),
@@ -133,7 +137,7 @@ class _FooterText extends StatelessWidget {
     return Text(
       text,
       style: theme.textTheme.bodyMedium?.copyWith(
-        color: Colors.white.withOpacity(0.85),
+        color: _op(Colors.white, 0.85),
       ),
     );
   }
@@ -154,9 +158,9 @@ class _FooterLink extends StatelessWidget {
       child: Text(
         label,
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: Colors.white.withOpacity(0.85),
+          color: _op(Colors.white, 0.85),
           decoration: TextDecoration.underline,
-          decorationColor: Colors.white.withOpacity(0.35),
+          decorationColor: _op(Colors.white, 0.35),
         ),
       ),
     );
