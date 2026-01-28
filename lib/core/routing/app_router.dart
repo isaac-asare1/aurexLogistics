@@ -1,5 +1,7 @@
 import 'package:aurex_secure_logistics/features/admin/admin_tracking_page.dart';
 import 'package:aurex_secure_logistics/features/home/home_page.dart';
+import 'package:aurex_secure_logistics/features/privacy%20policy/privacy_policy.dart';
+import 'package:aurex_secure_logistics/features/terms%20&%20conditions/terms_and_contions.dart';
 import 'package:aurex_secure_logistics/features/tracking/tracking_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +43,16 @@ class AppRouter {
         path: '/admin',
         name: 'admin',
         builder: (context, state) => const AdminTrackingPage(),
+      ),
+      GoRoute(
+        path: '/terms',
+        name: 'terms',
+        builder: (context, state) => const TermsAndConditionsPage(),
+      ),
+      GoRoute(
+        path: '/privacy',
+        name: 'privacy',
+        builder: (context, state) => const PrivacyPolicyPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

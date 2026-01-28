@@ -31,7 +31,7 @@ class AurexFooter extends StatelessWidget {
                     title: 'Aurex Secure Logistics',
                     width: 420,
                     children: [
-                      Text(
+                      SelectableText(
                         'Secure dispatch, corporate logistics, warehousing, and high-value deliveries handled with strict standards and accountability.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: _op(Colors.white, 0.85),
@@ -47,7 +47,8 @@ class AurexFooter extends StatelessWidget {
                       _FooterLink(label: 'Tracking', route: '/tracking'),
                       _FooterLink(label: 'About', route: '/about'),
                       _FooterLink(label: 'Contact', route: '/contact'),
-                      _FooterLink(label: 'Admin', route: '/admin'),
+                      _FooterLink(label: 'Terms & Conditions', route: '/terms'),
+                      _FooterLink(label: 'Privacy Policy', route: '/privacy'),
                     ],
                   ),
                   _FooterBlock(

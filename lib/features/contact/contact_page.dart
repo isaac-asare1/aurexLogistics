@@ -24,7 +24,7 @@ class _ContactPageState extends State<ContactPage> {
 
   /// IMPORTANT: wa.me requires digits only (no +, no spaces)
   /// Example UK WhatsApp: 447911123456
-  static const String whatsAppNumber = '447911123456';
+  // static const String whatsAppNumber = '0599347306';
 
   /// Display format (can include spaces)
   static const String phoneNumber = '+44 7911 123456';
@@ -172,11 +172,25 @@ class _ContactPageState extends State<ContactPage> {
     return lines.join('\n');
   }
 
+  // Future<void> _openWhatsApp({String? message}) async {
+  //   const String whatsAppNumber = '0599347306';
+
+  //   final text = Uri.encodeComponent(message ?? 'Hello Aurex, I need a quote.');
+  //   final digitsOnly = whatsAppNumber.replaceAll(RegExp(r'[^0-9]'), '');
+  //   final uri = Uri.parse('https://wa.me/$digitsOnly?text=$text');
+  //   await launchUrl(uri, mode: LaunchMode.platformDefault);
+  // }
   Future<void> _openWhatsApp({String? message}) async {
+    const String whatsAppNumber =
+        '233599347306'; // Ghana number with country code
+
     final text = Uri.encodeComponent(message ?? 'Hello Aurex, I need a quote.');
-    final digitsOnly = whatsAppNumber.replaceAll(RegExp(r'[^0-9]'), '');
-    final uri = Uri.parse('https://wa.me/$digitsOnly?text=$text');
-    await launchUrl(uri, mode: LaunchMode.platformDefault);
+
+    final uri = Uri.parse('https://wa.me/$whatsAppNumber?text=$text');
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch WhatsApp';
+    }
   }
 
   Future<void> _callPhone() async {

@@ -12,12 +12,9 @@ class AppTheme {
   static ThemeData light() {
     final base = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: primary).copyWith(
-        primary: primary,
-        secondary: accent,
-        surface: surface,
-        background: bg,
-      ),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primary,
+      ).copyWith(primary: primary, secondary: accent, surface: surface),
     );
 
     return base.copyWith(
