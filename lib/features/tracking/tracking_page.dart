@@ -402,7 +402,7 @@ class _TrackingSearchCard extends StatelessWidget {
     final isDesktop = Breakpoints.isDesktop(context);
 
     // These must exist in Firestore to work (create them via Admin page)
-    const samples = ['ARX-2601-5239', 'ARX-2401-0131'];
+    const samples = ['ARX-2601-5239', 'ARX-2601-3261'];
 
     return Padding(
       padding: pad.copyWith(top: 10),

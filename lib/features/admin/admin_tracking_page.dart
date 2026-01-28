@@ -1,3 +1,4 @@
+import 'package:aurex_secure_logistics/core/responsive/breakpoints.dart';
 import 'package:aurex_secure_logistics/features/admin/tracking_main_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,6 +58,7 @@ class AdminTrackingPage extends StatelessWidget {
   }
 }
 
+/// ===============================================================
 /// Admin Login Screen
 /// ===============================================================
 class _AdminLoginScreen extends StatefulWidget {
@@ -203,6 +205,9 @@ class _AdminLoginScreenState extends State<_AdminLoginScreen> {
   }
 }
 
+/// ===============================================================
+/// Not Authorized Screen
+/// ===============================================================
 class _NotAuthorized extends StatelessWidget {
   final String email;
   const _NotAuthorized({required this.email});
@@ -243,8 +248,12 @@ class _NotAuthorized extends StatelessWidget {
 }
 
 /// ===============================================================
-/// REAL ADMIN TRACKING UI (your original code + AppBar buttons)
+/// REAL ADMIN TRACKING UI
+/// - LEFT: Create Package form (ALWAYS visible)
+/// - RIGHT: Toggle between Packages list and Quotes list
 /// ===============================================================
+enum _RightTab { packages, quotes }
+
 class _AdminTrackingHome extends StatefulWidget {
   const _AdminTrackingHome();
 
@@ -254,6 +263,9 @@ class _AdminTrackingHome extends StatefulWidget {
 
 class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
   final _svc = TrackingAdminService();
+
+  // ✅ Right-side toggle
+  _RightTab _tab = _RightTab.packages;
 
   // Create form
   final _formKey = GlobalKey<FormState>();
@@ -270,7 +282,6 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
   final _lng = TextEditingController();
 
   TrackingStatus _status = TrackingStatus.created;
-
   bool _creating = false;
 
   @override
@@ -290,28 +301,32 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Breakpoints.isDesktop(context);
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin • Package Tracking'),
+        title: Text(
+          'Admin • Package Tracking',
+          style: isDesktop ? null : const TextStyle(fontSize: 17),
+        ),
         actions: [
           TextButton.icon(
             onPressed: () => _openAddAdminSheet(context),
             icon: const Icon(Icons.person_add_alt_1_rounded),
-            label: const Text('Add Admin'),
+            label: isDesktop ? const Text('Add Admin') : const SizedBox(),
           ),
           const SizedBox(width: 6),
           TextButton.icon(
             onPressed: () => _openAdminsList(context),
             icon: const Icon(Icons.admin_panel_settings_outlined),
-            label: const Text('View Admins'),
+            label: isDesktop ? const Text('View Admins') : const SizedBox(),
           ),
           const SizedBox(width: 6),
           TextButton.icon(
             onPressed: () => FirebaseAuth.instance.signOut(),
             icon: const Icon(Icons.logout_rounded),
-            label: const Text('Logout'),
+            label: isDesktop ? const Text('Logout') : const SizedBox(),
           ),
           const SizedBox(width: 8),
         ],
@@ -320,7 +335,7 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
         builder: (context, c) {
           final isWide = c.maxWidth >= 980;
           final left = _buildCreateCard(theme);
-          final right = _buildList(theme);
+          final right = _buildRightPanel(theme);
 
           if (!isWide) {
             return ListView(
@@ -363,6 +378,8 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     );
   }
 
+  // ---------------- LEFT: CREATE PACKAGE ----------------
+
   Widget _buildCreateCard(ThemeData theme) {
     return SingleChildScrollView(
       child: Card(
@@ -396,11 +413,26 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
                   hint: 'e.g. Secure Dispatch',
                 ),
                 const SizedBox(height: 10),
-                _field(_origin, 'Origin', required: true),
+                _field(
+                  _origin,
+                  'Origin',
+                  required: true,
+                  hint: 'e.g. Manchester, UK',
+                ),
                 const SizedBox(height: 10),
-                _field(_destination, 'Destination', required: true),
+                _field(
+                  _destination,
+                  'Destination',
+                  required: true,
+                  hint: 'e.g. London, UK',
+                ),
                 const SizedBox(height: 10),
-                _field(_packageType, 'Package Type', required: true),
+                _field(
+                  _packageType,
+                  'Package Type',
+                  required: true,
+                  hint: 'e.g. Documents, Electronics, Furniture',
+                ),
                 const SizedBox(height: 10),
                 _field(_packageDesc, 'Package Description (optional)'),
                 const SizedBox(height: 10),
@@ -471,61 +503,193 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     );
   }
 
-  Widget _buildList(ThemeData theme) {
-    return SingleChildScrollView(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'All Packages',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 10),
-              StreamBuilder<List<TrackingShipment>>(
-                stream: _svc.streamShipments(),
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.all(18),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
+  // ---------------- RIGHT: TOGGLE + LISTS ----------------
 
-                  final items = snap.data ?? [];
-                  if (items.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Text(
-                        'No packages yet. Create one on the left.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    );
-                  }
+  Widget _buildRightPanel(ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutBuilder(
+              builder: (context, c) {
+                final narrow = c.maxWidth < 560;
 
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const Divider(height: 18),
-                    itemBuilder: (_, i) => _ShipmentTile(
-                      shipment: items[i],
-                      onDelete: () => _confirmDelete(items[i].trackingId),
-                      onSave: (updated) => _saveEdits(updated),
-                    ),
+                final title = Text(
+                  _tab == _RightTab.packages
+                      ? 'All Packages'
+                      : 'Quote Requests',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                );
+
+                final toggle = _rightToggle(narrow: narrow);
+
+                if (narrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      title,
+                      const SizedBox(height: 10),
+                      Align(alignment: Alignment.centerLeft, child: toggle),
+                    ],
                   );
-                },
-              ),
-            ],
-          ),
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: title),
+                    toggle,
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+
+            // ✅ body switches ONLY on the right
+            if (_tab == _RightTab.packages)
+              _buildPackagesList(theme)
+            else
+              _buildQuotesList(theme),
+          ],
         ),
       ),
     );
   }
+
+  Widget _rightToggle({required bool narrow}) {
+    final selected = <bool>[
+      _tab == _RightTab.packages,
+      _tab == _RightTab.quotes,
+    ];
+
+    return ToggleButtons(
+      isSelected: selected,
+      borderRadius: BorderRadius.circular(999),
+      constraints: BoxConstraints(
+        minHeight: 38,
+        minWidth: narrow ? 46 : 120, // ✅ nice on mobile + desktop
+      ),
+      onPressed: (i) {
+        setState(() => _tab = i == 0 ? _RightTab.packages : _RightTab.quotes);
+      },
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.local_shipping_outlined, size: 20),
+              if (!narrow) ...[
+                const SizedBox(width: 8),
+                const Text('Packages'),
+              ],
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.request_quote_outlined, size: 20),
+              if (!narrow) ...[const SizedBox(width: 8), const Text('Quotes')],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPackagesList(ThemeData theme) {
+    return StreamBuilder<List<TrackingShipment>>(
+      stream: _svc.streamShipments(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(18),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final items = snap.data ?? [];
+        if (items.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(18),
+            child: Text(
+              'No packages yet. Create one on the left.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const Divider(height: 18),
+          itemBuilder: (_, i) => _ShipmentTile(
+            shipment: items[i],
+            onDelete: () => _confirmDelete(items[i].trackingId),
+            onSave: (updated) => _saveEdits(updated),
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ Quotes are loaded from Firestore here.
+  /// Collection expected: quote_requests
+  /// Recommended fields: name, phone, email, pickup, dropoff, items, notes, createdAt, status
+  Widget _buildQuotesList(ThemeData theme) {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('quote_requests')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(18),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snap.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(18),
+            child: Text(
+              'Failed to load quotes: ${snap.error}',
+              style: theme.textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        final docs = snap.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(18),
+            child: Text(
+              'No quote requests yet.',
+              style: theme.textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const Divider(height: 14),
+          itemBuilder: (_, i) => _QuoteTile(doc: docs[i]),
+        );
+      },
+    );
+  }
+
+  // ---------------- CRUD: PACKAGES ----------------
 
   Future<void> _createPackage() async {
     if (!_formKey.currentState!.validate()) return;
@@ -655,7 +819,8 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     }
   }
 
-  // ---------- UI helpers ----------
+  // ---------------- UI helpers ----------------
+
   Widget _field(
     TextEditingController c,
     String label, {
@@ -675,7 +840,11 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
                   return null;
                 }
               : null),
-      decoration: InputDecoration(labelText: label, hintText: hint),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        hintStyle: const TextStyle(fontSize: 15),
+      ),
     );
   }
 
@@ -698,8 +867,8 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
 
 /// ===============================================================
 /// Add Admin Sheet (NO Cloud Functions)
-/// Uses Secondary Firebase App Auth so it DOESN'T log out current admin.
-/// Also writes admins/{uid} with email.
+/// - Uses Secondary Firebase App Auth so it DOESN'T log out current admin
+/// - Writes admins/{uid} with email
 /// ===============================================================
 class _AddAdminSheet extends StatefulWidget {
   const _AddAdminSheet();
@@ -833,7 +1002,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
     try {
       return Firebase.app('secondary-admin');
     } catch (_) {
-      // Requires default app already initialized in main()
       final opts = Firebase.app().options;
       return Firebase.initializeApp(name: 'secondary-admin', options: opts);
     }
@@ -860,7 +1028,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
         throw Exception('User creation failed (no user returned).');
       }
 
-      // Save admin record
       await FirebaseFirestore.instance
           .collection('admins')
           .doc(newUser.uid)
@@ -870,7 +1037,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
             'createdBy': FirebaseAuth.instance.currentUser?.uid,
           });
 
-      // Cleanup secondary auth session
       await secondaryAuth.signOut();
 
       if (!mounted) return;
@@ -965,7 +1131,95 @@ class _AdminsListSheet extends StatelessWidget {
 }
 
 /// ===============================================================
-/// Your Shipment Tile (unchanged)
+/// Quote tile widget (shows quote request details)
+/// ===============================================================
+class _QuoteTile extends StatelessWidget {
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  const _QuoteTile({required this.doc});
+
+  String _fmtTs(dynamic ts) {
+    if (ts is! Timestamp) return '—';
+    final d = ts.toDate().toLocal();
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    final hh = d.hour.toString().padLeft(2, '0');
+    final mm = d.minute.toString().padLeft(2, '0');
+    return '$y-$m-$day  $hh:$mm';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final data = doc.data();
+
+    // Try common keys (adjust if your contact form uses different names)
+    final name = (data['name'] ?? data['fullName'] ?? '').toString();
+    final phone = (data['phone'] ?? data['phoneNumber'] ?? '').toString();
+    final email = (data['email'] ?? '').toString();
+    final pickup = (data['pickup'] ?? data['pickupLocation'] ?? '').toString();
+    final dropoff = (data['dropoff'] ?? data['dropoffLocation'] ?? '')
+        .toString();
+    final items = (data['items'] ?? data['whatMoving'] ?? '').toString();
+    final notes = (data['notes'] ?? '').toString();
+    final status = (data['status'] ?? 'new').toString();
+    final createdAt = data['createdAt'];
+
+    return ExpansionTile(
+      tilePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      title: Text(
+        name.isEmpty ? '(No name)' : name,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      subtitle: Text(
+        '${pickup.isEmpty ? 'Pickup' : pickup} → ${dropoff.isEmpty ? 'Drop-off' : dropoff}',
+      ),
+      trailing: Chip(label: Text(status), visualDensity: VisualDensity.compact),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _row(theme, 'Request ID', doc.id),
+              _row(theme, 'Created', _fmtTs(createdAt)),
+              if (phone.trim().isNotEmpty) _row(theme, 'Phone', phone),
+              if (email.trim().isNotEmpty) _row(theme, 'Email', email),
+              if (items.trim().isNotEmpty) _row(theme, 'Items', items),
+              if (notes.trim().isNotEmpty) _row(theme, 'Notes', notes),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _row(ThemeData theme, String k, String v) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              k,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Expanded(child: Text(v, style: theme.textTheme.bodyMedium)),
+        ],
+      ),
+    );
+  }
+}
+
+/// ===============================================================
+/// Shipment Tile (unchanged from yours)
 /// ===============================================================
 class _ShipmentTile extends StatefulWidget {
   final TrackingShipment shipment;
@@ -1063,7 +1317,6 @@ class _ShipmentTileState extends State<_ShipmentTile> {
             children: [
               _row(theme, 'Tracking ID', widget.shipment.trackingId),
               const SizedBox(height: 10),
-
               _edit
                   ? DropdownButtonFormField<TrackingStatus>(
                       value: _status,
@@ -1079,9 +1332,7 @@ class _ShipmentTileState extends State<_ShipmentTile> {
                       onChanged: (v) => setState(() => _status = v ?? _status),
                     )
                   : _row(theme, 'Status', _status.label),
-
               const SizedBox(height: 10),
-
               if (_edit) ...[
                 _tf(_sender, 'Sender'),
                 const SizedBox(height: 10),

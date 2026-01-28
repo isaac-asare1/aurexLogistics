@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/responsive/breakpoints.dart';
 import '../../core/widgets/aurex_navbar.dart';
@@ -45,6 +46,10 @@ class _ContactPageState extends State<ContactPage> {
   final _notes = TextEditingController();
 
   bool _loading = false;
+
+  // ✅ Firestore collection for quote requests
+  final CollectionReference<Map<String, dynamic>> _quoteRequests =
+      FirebaseFirestore.instance.collection('quote_requests');
 
   @override
   void dispose() {
@@ -99,15 +104,62 @@ class _ContactPageState extends State<ContactPage> {
 
     setState(() => _loading = true);
 
-    final msg = _buildQuoteMessage();
-    await _openWhatsApp(message: msg);
+    try {
+      // 1) Save request in Firestore
+      final requestId = await _saveQuoteToFirestore();
 
-    if (mounted) setState(() => _loading = false);
+      // 2) Open WhatsApp with message (includes request ref)
+      final msg = _buildQuoteMessage(requestId: requestId);
+      await _openWhatsApp(message: msg);
+
+      if (!mounted) return;
+
+      // 3) Clear form
+      _formKey.currentState?.reset();
+      _name.clear();
+      _phone.clear();
+      _email.clear();
+      _pickup.clear();
+      _dropoff.clear();
+      _items.clear();
+      _notes.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Quote request saved. Ref: $requestId')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send request: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
-  String _buildQuoteMessage() {
+  Future<String> _saveQuoteToFirestore() async {
+    final doc = _quoteRequests.doc(); // generate id now
+
+    await doc.set({
+      'name': _name.text.trim(),
+      'phone': _phone.text.trim(),
+      'email': _email.text.trim(),
+      'pickup': _pickup.text.trim(),
+      'dropoff': _dropoff.text.trim(),
+      'items': _items.text.trim(),
+      'notes': _notes.text.trim(),
+      'status': 'new',
+      'source': 'website',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    return doc.id;
+  }
+
+  String _buildQuoteMessage({String? requestId}) {
     final lines = [
       'Hello Aurex Secure Logistics, I want a quote:',
+      if (requestId != null) 'Request ID: $requestId',
       '',
       'Name: ${_name.text.trim()}',
       'Phone: ${_phone.text.trim()}',
