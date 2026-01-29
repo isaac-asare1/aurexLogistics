@@ -49,13 +49,14 @@ class AurexFooter extends StatelessWidget {
                       _FooterLink(label: 'Contact', route: '/contact'),
                       _FooterLink(label: 'Terms & Conditions', route: '/terms'),
                       _FooterLink(label: 'Privacy Policy', route: '/privacy'),
+                      _FooterLink(label: 'Admin', route: '/admin'),
                     ],
                   ),
                   _FooterBlock(
                     title: 'Contact',
                     children: [
-                      const _FooterText('Phone: +44 20 1234 5678'),
-                      const _FooterText('WhatsApp: +44 7700 900123'),
+                      const _FooterText('Phone: +44 74 4141 3404'),
+                      const _FooterText('WhatsApp: +44 74 4141 3404'),
                       const _FooterText('Email: info@aurexfreight.org'),
                       const _FooterText(
                         'Location: 8-14 Exchange St, Manchester, M2 7HA',

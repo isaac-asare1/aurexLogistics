@@ -68,12 +68,16 @@ class TermsAndConditionsPage extends StatelessWidget {
                                 ],
                               ),
 
+                              // ✅ FIXED: No login/account required, but email may be collected for quotes
                               _Section(
-                                title: "3. Eligibility and Accounts",
+                                title:
+                                    "3. Quote Requests (No Account Required)",
                                 children: const [
                                   Text(
-                                    "If you create an account, you are responsible for keeping your login credentials secure and for all activity under your account. "
-                                    "You agree to provide accurate and up-to-date information.",
+                                    "You do not need to create an account or log in to request a quote or use certain parts of our Services. "
+                                    "When you request a quote, you may be asked to provide contact details such as your email address and phone number, "
+                                    "as well as shipment-related information needed to prepare your quote. "
+                                    "You agree to provide accurate information so we can respond and coordinate service delivery if you proceed.",
                                   ),
                                 ],
                               ),
@@ -267,7 +271,7 @@ class TermsAndConditionsPage extends StatelessWidget {
                                   _BulletList(
                                     items: [
                                       "Email: info@aurexfreight.org",
-                                      "Phone: +44 20 1234 5678",
+                                      "Phone: +44 74 4141 3404",
                                       "Address: 8-14 Exchange St, Manchester, M2 7HA",
                                     ],
                                   ),

@@ -50,25 +50,27 @@ class PrivacyPolicyPage extends StatelessWidget {
                                 ],
                               ),
 
+                              // ✅ FIXED: No “account/login” wording; focus on quote requests + shipment handling
                               _Section(
                                 title: "2. Information We Collect",
                                 children: const [
                                   Text(
-                                    "We collect information you provide directly, information generated when you use the Services, and information from third parties "
-                                    "(such as carriers or payment providers) where applicable.",
+                                    "We collect information you provide directly (for example when requesting a quote), information generated when you use the Services, "
+                                    "and information from third parties (such as carriers or payment providers) where applicable.",
                                   ),
                                   SizedBox(height: 10),
                                   _BulletList(
                                     items: [
-                                      "Identity & contact data: name, phone number, email, address.",
-                                      "Shipment data: sender/receiver details, pickup/delivery address, package description, declared value (if provided).",
-                                      "Account data: login identifiers, preferences, support interactions.",
-                                      "Usage data: pages viewed, actions taken, device/browser details, IP address (where applicable).",
+                                      "Identity & contact data: name, phone number, email address, and address (if provided).",
+                                      "Quote request data: shipment details you submit when requesting a quote (pickup/delivery locations, package type/description, quantity/weight where provided).",
+                                      "Shipment data (when you proceed): sender/receiver details, pickup/delivery address, package description, handling instructions, declared value (if provided).",
+                                      "Usage data: pages viewed, actions taken, device/browser details, and IP address (where applicable).",
                                     ],
                                   ),
                                 ],
                               ),
 
+                              // ✅ FIXED: Remove “create/manage accounts”; add “respond to quote requests”
                               _Section(
                                 title: "3. How We Use Your Information",
                                 children: const [
@@ -78,9 +80,9 @@ class PrivacyPolicyPage extends StatelessWidget {
                                   SizedBox(height: 10),
                                   _BulletList(
                                     items: [
-                                      "To create and manage accounts.",
-                                      "To process pickups, deliveries, shipment tracking, and customer support.",
-                                      "To send notifications (e.g., status updates, confirmations).",
+                                      "To respond to quote requests and communicate with you about pricing and service options.",
+                                      "To process pickups, deliveries, shipment tracking, and customer support (when you proceed with a service).",
+                                      "To send service communications (e.g., quote responses, status updates, confirmations).",
                                       "To prevent fraud, abuse, and security incidents.",
                                       "To improve performance, user experience, and service reliability.",
                                       "To comply with legal obligations (e.g., customs documentation, regulatory requests).",

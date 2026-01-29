@@ -1,10 +1,10 @@
-import 'package:aurex_secure_logistics/core/responsive/breakpoints.dart';
-import 'package:aurex_secure_logistics/features/admin/tracking_main_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'package:aurex_secure_logistics/core/responsive/breakpoints.dart';
+import 'tracking_main_service.dart';
 import 'tracking_models.dart';
 
 /// ===============================================================
@@ -113,7 +113,6 @@ class _AdminLoginScreenState extends State<_AdminLoginScreen> {
                       style: theme.textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 14),
-
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
@@ -129,7 +128,6 @@ class _AdminLoginScreenState extends State<_AdminLoginScreen> {
                       },
                     ),
                     const SizedBox(height: 10),
-
                     TextFormField(
                       controller: _password,
                       obscureText: _obscure,
@@ -153,7 +151,6 @@ class _AdminLoginScreenState extends State<_AdminLoginScreen> {
                         return null;
                       },
                     ),
-
                     const SizedBox(height: 14),
                     SizedBox(
                       width: double.infinity,
@@ -251,6 +248,7 @@ class _NotAuthorized extends StatelessWidget {
 /// REAL ADMIN TRACKING UI
 /// - LEFT: Create Package form (ALWAYS visible)
 /// - RIGHT: Toggle between Packages list and Quotes list
+/// - ✅ FIXED: No overflow when expanding tiles (desktop + mobile)
 /// ===============================================================
 enum _RightTab { packages, quotes }
 
@@ -264,10 +262,8 @@ class _AdminTrackingHome extends StatefulWidget {
 class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
   final _svc = TrackingAdminService();
 
-  // ✅ Right-side toggle
   _RightTab _tab = _RightTab.packages;
 
-  // Create form
   final _formKey = GlobalKey<FormState>();
 
   final _sender = TextEditingController();
@@ -334,9 +330,16 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
       body: LayoutBuilder(
         builder: (context, c) {
           final isWide = c.maxWidth >= 980;
-          final left = _buildCreateCard(theme);
-          final right = _buildRightPanel(theme);
+          final left = _buildCreateCard(
+            theme,
+            constrainedHeight: isWide ? c.maxHeight : null,
+          );
+          final right = _buildRightPanel(
+            theme,
+            constrainedHeight: isWide ? c.maxHeight : null,
+          );
 
+          // Mobile / narrow: outer scroll is fine
           if (!isWide) {
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -344,15 +347,21 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
             );
           }
 
+          // ✅ Desktop / wide: constrain height + make inner lists scroll
           return Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: 420, child: left),
-                const SizedBox(width: 14),
-                Expanded(child: right),
-              ],
+            child: SizedBox(
+              height: c.maxHeight,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: 420, height: c.maxHeight, child: left),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: SizedBox(height: c.maxHeight, child: right),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -380,137 +389,145 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
 
   // ---------------- LEFT: CREATE PACKAGE ----------------
 
-  Widget _buildCreateCard(ThemeData theme) {
-    return SingleChildScrollView(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Create Package',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Tracking ID will be generated automatically.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 14),
+  Widget _buildCreateCard(ThemeData theme, {double? constrainedHeight}) {
+    final constrained = constrainedHeight != null;
 
-                _field(_sender, 'Sender', required: true),
-                const SizedBox(height: 10),
-                _field(_receiver, 'Receiver', required: true),
-                const SizedBox(height: 10),
-                _field(
-                  _serviceType,
-                  'Service Type',
-                  hint: 'e.g. Secure Dispatch',
+    final form = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create Package',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
                 ),
-                const SizedBox(height: 10),
-                _field(
-                  _origin,
-                  'Origin',
-                  required: true,
-                  hint: 'e.g. Manchester, UK',
-                ),
-                const SizedBox(height: 10),
-                _field(
-                  _destination,
-                  'Destination',
-                  required: true,
-                  hint: 'e.g. London, UK',
-                ),
-                const SizedBox(height: 10),
-                _field(
-                  _packageType,
-                  'Package Type',
-                  required: true,
-                  hint: 'e.g. Documents, Electronics, Furniture',
-                ),
-                const SizedBox(height: 10),
-                _field(_packageDesc, 'Package Description (optional)'),
-                const SizedBox(height: 10),
-                _field(_currentLocation, 'Current Location', required: true),
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _field(
-                        _lat,
-                        'Latitude',
-                        required: true,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        validator: _latValidator,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Tracking ID will be generated automatically.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 14),
+              _field(_sender, 'Sender', required: true),
+              const SizedBox(height: 10),
+              _field(_receiver, 'Receiver', required: true),
+              const SizedBox(height: 10),
+              _field(
+                _serviceType,
+                'Service Type',
+                hint: 'e.g. Secure Dispatch',
+              ),
+              const SizedBox(height: 10),
+              _field(
+                _origin,
+                'Origin',
+                required: true,
+                hint: 'e.g. Manchester, UK',
+              ),
+              const SizedBox(height: 10),
+              _field(
+                _destination,
+                'Destination',
+                required: true,
+                hint: 'e.g. London, UK',
+              ),
+              const SizedBox(height: 10),
+              _field(
+                _packageType,
+                'Package Type',
+                required: true,
+                hint: 'e.g. Documents, Electronics, Furniture',
+              ),
+              const SizedBox(height: 10),
+              _field(_packageDesc, 'Package Description (optional)'),
+              const SizedBox(height: 10),
+              _field(_currentLocation, 'Current Location', required: true),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _field(
+                      _lat,
+                      'Latitude',
+                      required: true,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
+                      validator: _latValidator,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _field(
-                        _lng,
-                        'Longitude',
-                        required: true,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        validator: _lngValidator,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                DropdownButtonFormField<TrackingStatus>(
-                  value: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: TrackingStatus.values
-                      .map(
-                        (s) => DropdownMenuItem(value: s, child: Text(s.label)),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(() => _status = v ?? _status),
-                ),
-
-                const SizedBox(height: 14),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _creating ? null : _createPackage,
-                    icon: _creating
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.add_rounded),
-                    label: Text(_creating ? 'Creating...' : 'Create Package'),
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _field(
+                      _lng,
+                      'Longitude',
+                      required: true,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      validator: _lngValidator,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<TrackingStatus>(
+                value: _status,
+                decoration: const InputDecoration(labelText: 'Status'),
+                items: TrackingStatus.values
+                    .map(
+                      (s) => DropdownMenuItem(value: s, child: Text(s.label)),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _status = v ?? _status),
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _creating ? null : _createPackage,
+                  icon: _creating
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add_rounded),
+                  label: Text(_creating ? 'Creating...' : 'Create Package'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
+
+    // ✅ On desktop, left panel is height-constrained so it must scroll internally
+    if (constrained) {
+      return SingleChildScrollView(child: form);
+    }
+    return form;
   }
 
   // ---------------- RIGHT: TOGGLE + LISTS ----------------
 
-  Widget _buildRightPanel(ThemeData theme) {
+  Widget _buildRightPanel(ThemeData theme, {double? constrainedHeight}) {
+    final constrained = constrainedHeight != null;
+
+    final body = _tab == _RightTab.packages
+        ? _buildPackagesList(theme, scrollable: constrained)
+        : _buildQuotesList(theme, scrollable: constrained);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: constrained ? MainAxisSize.max : MainAxisSize.min,
           children: [
             LayoutBuilder(
               builder: (context, c) {
@@ -548,11 +565,8 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
             ),
             const SizedBox(height: 10),
 
-            // ✅ body switches ONLY on the right
-            if (_tab == _RightTab.packages)
-              _buildPackagesList(theme)
-            else
-              _buildQuotesList(theme),
+            // ✅ KEY: on desktop, list must be inside Expanded so it scrolls
+            if (constrained) Expanded(child: body) else body,
           ],
         ),
       ),
@@ -568,10 +582,7 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     return ToggleButtons(
       isSelected: selected,
       borderRadius: BorderRadius.circular(999),
-      constraints: BoxConstraints(
-        minHeight: 38,
-        minWidth: narrow ? 46 : 120, // ✅ nice on mobile + desktop
-      ),
+      constraints: BoxConstraints(minHeight: 38, minWidth: narrow ? 46 : 120),
       onPressed: (i) {
         setState(() => _tab = i == 0 ? _RightTab.packages : _RightTab.quotes);
       },
@@ -603,7 +614,7 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     );
   }
 
-  Widget _buildPackagesList(ThemeData theme) {
+  Widget _buildPackagesList(ThemeData theme, {required bool scrollable}) {
     return StreamBuilder<List<TrackingShipment>>(
       stream: _svc.streamShipments(),
       builder: (context, snap) {
@@ -626,8 +637,10 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
         }
 
         return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: !scrollable,
+          physics: scrollable
+              ? const AlwaysScrollableScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           separatorBuilder: (_, __) => const Divider(height: 18),
           itemBuilder: (_, i) => _ShipmentTile(
@@ -640,10 +653,7 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
     );
   }
 
-  /// ✅ Quotes are loaded from Firestore here.
-  /// Collection expected: quote_requests
-  /// Recommended fields: name, phone, email, pickup, dropoff, items, notes, createdAt, status
-  Widget _buildQuotesList(ThemeData theme) {
+  Widget _buildQuotesList(ThemeData theme, {required bool scrollable}) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('quote_requests')
@@ -679,8 +689,10 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
         }
 
         return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: !scrollable,
+          physics: scrollable
+              ? const AlwaysScrollableScrollPhysics()
+              : const NeverScrollableScrollPhysics(),
           itemCount: docs.length,
           separatorBuilder: (_, __) => const Divider(height: 14),
           itemBuilder: (_, i) => _QuoteTile(doc: docs[i]),
@@ -693,7 +705,6 @@ class _AdminTrackingHomeState extends State<_AdminTrackingHome> {
 
   Future<void> _createPackage() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _creating = true);
 
     try {
@@ -920,7 +931,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
             const SizedBox(height: 6),
             const Text('Create a new admin account (email + password).'),
             const SizedBox(height: 14),
-
             TextFormField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
@@ -936,7 +946,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
               },
             ),
             const SizedBox(height: 10),
-
             TextFormField(
               controller: _password,
               obscureText: _obscure,
@@ -961,7 +970,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
               },
             ),
             const SizedBox(height: 10),
-
             TextFormField(
               controller: _confirm,
               obscureText: _obscure,
@@ -976,7 +984,6 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
                 return null;
               },
             ),
-
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
@@ -1024,9 +1031,7 @@ class _AddAdminSheetState extends State<_AddAdminSheet> {
       );
 
       final newUser = cred.user;
-      if (newUser == null) {
-        throw Exception('User creation failed (no user returned).');
-      }
+      if (newUser == null) throw Exception('User creation failed.');
 
       await FirebaseFirestore.instance
           .collection('admins')
@@ -1130,9 +1135,10 @@ class _AdminsListSheet extends StatelessWidget {
   }
 }
 
-/// ===============================================================
-/// Quote tile widget (shows quote request details)
-/// ===============================================================
+// /// ===============================================================
+// /// Quote tile widget (shows quote request details)
+// /// ✅ safe on small screens + avoids overflow
+// /// ===============================================================
 class _QuoteTile extends StatelessWidget {
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
   const _QuoteTile({required this.doc});
@@ -1148,12 +1154,52 @@ class _QuoteTile extends StatelessWidget {
     return '$y-$m-$day  $hh:$mm';
   }
 
+  Future<void> _confirmDeleteQuote(BuildContext context, String docId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Delete quote request?'),
+        content: Text(
+          'This will permanently delete the quote request:\n$docId',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('quote_requests')
+          .doc(docId)
+          .delete();
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Quote deleted')));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final data = doc.data();
 
-    // Try common keys (adjust if your contact form uses different names)
     final name = (data['name'] ?? data['fullName'] ?? '').toString();
     final phone = (data['phone'] ?? data['phoneNumber'] ?? '').toString();
     final email = (data['email'] ?? '').toString();
@@ -1162,21 +1208,29 @@ class _QuoteTile extends StatelessWidget {
         .toString();
     final items = (data['items'] ?? data['whatMoving'] ?? '').toString();
     final notes = (data['notes'] ?? '').toString();
-    final status = (data['status'] ?? 'new').toString();
     final createdAt = data['createdAt'];
 
     return ExpansionTile(
       tilePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       title: Text(
         name.isEmpty ? '(No name)' : name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w900,
         ),
       ),
       subtitle: Text(
         '${pickup.isEmpty ? 'Pickup' : pickup} → ${dropoff.isEmpty ? 'Drop-off' : dropoff}',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       ),
-      trailing: Chip(label: Text(status), visualDensity: VisualDensity.compact),
+      trailing: IconButton(
+        tooltip: 'Delete',
+        icon: const Icon(Icons.delete_outline_rounded),
+        // ✅ IMPORTANT: call the function with doc.id
+        onPressed: () => _confirmDeleteQuote(context, doc.id),
+      ),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -1219,7 +1273,7 @@ class _QuoteTile extends StatelessWidget {
 }
 
 /// ===============================================================
-/// Shipment Tile (unchanged from yours)
+/// Shipment Tile (unchanged logic, but safe because list is scrollable on desktop)
 /// ===============================================================
 class _ShipmentTile extends StatefulWidget {
   final TrackingShipment shipment;
